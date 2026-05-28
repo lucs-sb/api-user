@@ -101,4 +101,79 @@ public sealed class UserServiceTests
 
         _userRepositoryMock.Verify(r => r.GetByEmailAsync(email, It.IsAny<CancellationToken>()), Times.Once);
     }
+
+    [TestCase(10, 10, 1, TestName = "Should_return_one_page_when_records_equal_page_size")]
+    [TestCase(11, 10, 2, TestName = "Should_return_two_pages_when_records_exceed_page_size")]
+    [TestCase(0, 10, 0, TestName = "Should_return_zero_pages_when_there_are_no_records")]
+    public async Task Should_calculate_total_pages_correctly(int totalRecords, int pageSize, int expectedTotalPages)
+    {
+        _userRepositoryMock
+            .Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(totalRecords);
+
+        _userRepositoryMock
+            .Setup(r => r.GetAllAsync(1, pageSize, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var result = await _userService.GetAllAsync(1, pageSize);
+
+        result.TotalPages.Should().Be(expectedTotalPages);
+    }
+
+    [Test]
+    public async Task Should_return_correct_pagination_metadata()
+    {
+        _userRepositoryMock
+            .Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(25);
+
+        _userRepositoryMock
+            .Setup(r => r.GetAllAsync(2, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var result = await _userService.GetAllAsync(page: 2, pageSize: 10);
+
+        result.PageNumber.Should().Be(2);
+        result.PageSize.Should().Be(10);
+        result.TotalRecords.Should().Be(25);
+        result.TotalPages.Should().Be(3);
+    }
+
+    [Test]
+    public async Task Should_return_empty_data_when_there_are_no_users()
+    {
+        _userRepositoryMock
+            .Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(0);
+
+        _userRepositoryMock
+            .Setup(r => r.GetAllAsync(1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([]);
+
+        var result = await _userService.GetAllAsync(1, 10);
+
+        result.Data.Should().BeEmpty();
+    }
+
+    [Test]
+    public async Task Should_map_user_fields_correctly()
+    {
+        var user = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+
+        _userRepositoryMock
+            .Setup(r => r.CountAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(1);
+
+        _userRepositoryMock
+            .Setup(r => r.GetAllAsync(1, 10, It.IsAny<CancellationToken>()))
+            .ReturnsAsync([user]);
+
+        var result = await _userService.GetAllAsync(1, 10);
+
+        var dto = result.Data!.First();
+        dto.Id.Should().Be(user.Id);
+        dto.Name.Should().Be(user.Name);
+        dto.Email.Should().Be(user.Email);
+        dto.BirthDate.Should().Be(user.BirthDate);
+    }
 }
