@@ -1,3 +1,4 @@
+using Mapster;
 using User.Application.DTOs.Request;
 using User.Application.Interfaces.Repositories;
 using User.Application.Interfaces.Services;
@@ -20,14 +21,7 @@ public sealed class UserService : IUserService
         if (user != null)
             throw new InvalidOperationException("Email already exists.");
 
-        user = new Domain.Entities.User
-        {
-            Name = request.Name,
-            Email = request.Email,
-            BirthDate = request.BirthDate,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
+        user = request.Adapt<Domain.Entities.User>();
 
         await _userRepository.AddAsync(user, cancellationToken);
     }

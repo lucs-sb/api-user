@@ -1,5 +1,7 @@
 using FluentValidation;
+using Mapster;
 using Microsoft.EntityFrameworkCore;
+using User.Api.Mapper;
 using User.Api.Model;
 using User.Api.Validators;
 using User.Application.DTOs.Request;
@@ -8,6 +10,8 @@ using User.Application.Interfaces.Services;
 using User.Application.Services;
 using User.Infrastructure.Repositories;
 using User.Infrastructure.Repositories.Context;
+
+UserMapper.Configure();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -45,9 +49,7 @@ app.MapPost("/users", async (CreateUserModel model, IValidator<CreateUserModel> 
     if (!validation.IsValid)
         return Results.ValidationProblem(validation.ToDictionary());
 
-    CreateUserRequestDTO request = new(model.Name!, model.Email!, model.BirthDate!.Value);
-
-    await userService.AddAsync(request, cancellationToken);
+    await userService.AddAsync(model.Adapt<CreateUserRequestDTO>(), cancellationToken);
 
     return Results.Created();
 })
