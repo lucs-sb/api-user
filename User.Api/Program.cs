@@ -26,6 +26,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
 builder.Services.AddScoped<IValidator<CreateUserModel>, CreateUserModelValidator>();
+builder.Services.AddScoped<IValidator<UpdateUserModel>, UpdateUserModelValidator>();
 
 var app = builder.Build();
 
@@ -73,6 +74,26 @@ app.MapGet("/users/{id:int}", async (int id, IUserService userService, Cancellat
     return user is null ? Results.NotFound() : Results.Ok(user);
 })
 .WithName("BuscarUsuarioPorId");
+
+app.MapPut("/users/{id:int}", async (int id, UpdateUserModel model, IValidator<UpdateUserModel> validator, IUserService userService, CancellationToken cancellationToken) =>
+{
+    var validation = await validator.ValidateAsync(model, cancellationToken);
+
+    if (!validation.IsValid)
+        return Results.ValidationProblem(validation.ToDictionary());
+
+    var result = await userService.UpdateAsync(id, model.Adapt<UpdateUserRequestDTO>(), cancellationToken);
+
+    if (result.IsFailed)
+        return Results.Problem(
+            detail: result.Errors.First().Message,
+            statusCode: result.Errors.First().Message == "Usuário não encontrado."
+                ? StatusCodes.Status404NotFound
+                : StatusCodes.Status409Conflict);
+
+    return Results.NoContent();
+})
+.WithName("AtualizarUsuario");
 
 app.MapDelete("/users/{id:int}", async (int id, IUserService userService, CancellationToken cancellationToken) =>
 {

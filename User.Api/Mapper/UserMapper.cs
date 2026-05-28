@@ -12,5 +12,11 @@ public static class UserMapper
             .NewConfig()
             .Map(dest => dest.CreatedAt, _ => DateTime.UtcNow)
             .Map(dest => dest.UpdatedAt, _ => DateTime.UtcNow);
+
+        TypeAdapterConfig<UpdateUserRequestDTO, Domain.Entities.User>
+            .NewConfig()
+            .Map(dest => dest.UpdatedAt, _ => DateTime.UtcNow)
+            .Ignore(dest => dest.Id)
+            .Ignore(dest => dest.CreatedAt);
     }
 }

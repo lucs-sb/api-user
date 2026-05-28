@@ -30,6 +30,25 @@ public sealed class UserService : IUserService
         return Result.Ok();
     }
 
+    public async Task<Result> UpdateAsync(int id, UpdateUserRequestDTO request, CancellationToken cancellationToken = default)
+    {
+        Domain.Entities.User? user = await _userRepository.GetByIdAsync(id, cancellationToken);
+
+        if (user is null)
+            return Result.Fail("Usuário não encontrado.");
+
+        Domain.Entities.User? emailOwner = await _userRepository.GetByEmailAsync(request.Email, cancellationToken);
+
+        if (emailOwner is not null && emailOwner.Id != id)
+            return Result.Fail("E-mail já está cadastrado.");
+
+        request.Adapt(user);
+
+        await _userRepository.UpdateAsync(user, cancellationToken);
+
+        return Result.Ok();
+    }
+
     public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         Domain.Entities.User? user = await _userRepository.GetByIdAsync(id, cancellationToken);
