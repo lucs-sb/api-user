@@ -206,6 +206,84 @@ public sealed class UserServiceTests
     }
 
     [Test]
+    public async Task Should_return_failure_when_updating_nonexistent_user()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Domain.Entities.User?)null);
+
+        var result = await _userService.UpdateAsync(1, new UpdateUserRequestDTO("Novo", "novo@email.com", new DateOnly(1995, 1, 1)));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be("Usuário não encontrado.");
+    }
+
+    [Test]
+    public async Task Should_return_failure_when_updating_with_email_already_used_by_another_user()
+    {
+        var existing = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+        var other = new Domain.Entities.User { Id = 2, Name = "Outro", Email = "outro@email.com", BirthDate = new DateOnly(1990, 1, 1) };
+
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
+
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("outro@email.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(other);
+
+        var result = await _userService.UpdateAsync(1, new UpdateUserRequestDTO("Teste", "outro@email.com", new DateOnly(1995, 1, 1)));
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be("E-mail já está cadastrado.");
+    }
+
+    [Test]
+    public async Task Should_update_user_when_data_is_valid()
+    {
+        var user = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+        var request = new UpdateUserRequestDTO("Novo Nome", "novo@email.com", new DateOnly(1990, 5, 10));
+
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("novo@email.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Domain.Entities.User?)null);
+
+        var result = await _userService.UpdateAsync(1, request);
+
+        result.IsSuccess.Should().BeTrue();
+        _userRepositoryMock.Verify(r => r.UpdateAsync(
+            It.Is<Domain.Entities.User>(u =>
+                u.Name == request.Name &&
+                u.Email == request.Email &&
+                u.BirthDate == request.BirthDate),
+            It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Test]
+    public async Task Should_allow_update_with_same_email_of_same_user()
+    {
+        var user = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+        var request = new UpdateUserRequestDTO("Novo Nome", "teste@email.com", new DateOnly(1995, 1, 1));
+
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        _userRepositoryMock
+            .Setup(r => r.GetByEmailAsync("teste@email.com", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var result = await _userService.UpdateAsync(1, request);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Test]
     public async Task Should_return_null_when_user_is_not_found()
     {
         _userRepositoryMock
