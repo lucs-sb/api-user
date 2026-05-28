@@ -1,5 +1,9 @@
 using Microsoft.EntityFrameworkCore;
+using User.Api.Model;
+using User.Application.DTOs.Request;
 using User.Application.Interfaces.Repositories;
+using User.Application.Interfaces.Services;
+using User.Application.Services;
 using User.Infrastructure.Repositories;
 using User.Infrastructure.Repositories.Context;
 
@@ -13,6 +17,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 });
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
@@ -29,28 +34,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
+app.MapPost("/users", async (CreateUserModel model, IUserService userService, CancellationToken cancellationToken) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    CreateUserRequestDTO request = new(model.Name, model.Email, model.BirthDate);
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    await userService.AddAsync(request, cancellationToken);
+
+    return Results.Created();
 })
-.WithName("GetWeatherForecast");
+.WithName("CriarUsuario");
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
