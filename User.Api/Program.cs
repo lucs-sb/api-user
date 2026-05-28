@@ -49,7 +49,12 @@ app.MapPost("/users", async (CreateUserModel model, IValidator<CreateUserModel> 
     if (!validation.IsValid)
         return Results.ValidationProblem(validation.ToDictionary());
 
-    await userService.AddAsync(model.Adapt<CreateUserRequestDTO>(), cancellationToken);
+    var result = await userService.AddAsync(model.Adapt<CreateUserRequestDTO>(), cancellationToken);
+
+    if (result.IsFailed)
+        return Results.Problem(
+            detail: result.Errors.First().Message,
+            statusCode: StatusCodes.Status409Conflict);
 
     return Results.Created();
 })
