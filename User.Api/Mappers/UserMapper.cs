@@ -1,8 +1,8 @@
 using Mapster;
-using User.Api.Model;
+using User.Api.Models;
 using User.Application.DTOs.Request;
 
-namespace User.Api.Mapper;
+namespace User.Api.Mappers;
 
 public static class UserMapper
 {

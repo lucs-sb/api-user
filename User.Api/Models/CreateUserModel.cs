@@ -1,4 +1,4 @@
-namespace User.Api.Model;
+namespace User.Api.Models;
 
 public sealed record CreateUserModel(
     string? Name,

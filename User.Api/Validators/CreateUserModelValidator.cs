@@ -1,5 +1,5 @@
 using FluentValidation;
-using User.Api.Model;
+using User.Api.Models;
 
 namespace User.Api.Validators;
 

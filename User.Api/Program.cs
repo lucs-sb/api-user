@@ -1,8 +1,8 @@
 using FluentValidation;
 using Mapster;
 using Microsoft.EntityFrameworkCore;
-using User.Api.Mapper;
-using User.Api.Model;
+using User.Api.Mappers;
+using User.Api.Models;
 using User.Api.Validators;
 using User.Application.DTOs.Request;
 using User.Application.Interfaces.Repositories;

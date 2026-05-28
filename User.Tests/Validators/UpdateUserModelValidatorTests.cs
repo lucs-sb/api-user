@@ -1,5 +1,5 @@
 using FluentValidation.TestHelper;
-using User.Api.Model;
+using User.Api.Models;
 using User.Api.Validators;
 
 namespace User.Tests.Validators;
