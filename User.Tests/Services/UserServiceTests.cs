@@ -1,4 +1,5 @@
 using FluentAssertions;
+using FluentResults;
 using Moq;
 using User.Application.DTOs.Request;
 using User.Application.Interfaces.Repositories;
@@ -36,6 +37,17 @@ public sealed class UserServiceTests
             .ReturnsAsync(new Domain.Entities.User { Name = "Existing", Email = email, BirthDate = new DateOnly(1990, 1, 1) });
 
     [Test]
+    public async Task Should_return_success_when_email_is_not_registered()
+    {
+        var request = CreateRequest();
+        SetupEmailNotRegistered(request.Email);
+
+        var result = await _userService.AddAsync(request);
+
+        result.IsSuccess.Should().BeTrue();
+    }
+
+    [Test]
     public async Task Should_add_user_when_email_is_not_registered()
     {
         var request = CreateRequest();
@@ -53,15 +65,15 @@ public sealed class UserServiceTests
     }
 
     [Test]
-    public async Task Should_throw_when_email_is_already_registered()
+    public async Task Should_return_failure_when_email_is_already_registered()
     {
         var request = CreateRequest();
         SetupEmailAlreadyRegistered(request.Email);
 
-        var act = async () => await _userService.AddAsync(request);
+        var result = await _userService.AddAsync(request);
 
-        await act.Should().ThrowAsync<InvalidOperationException>()
-            .WithMessage("Email already exists.");
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be("E-mail já está cadastrado.");
     }
 
     [Test]
@@ -70,8 +82,7 @@ public sealed class UserServiceTests
         var request = CreateRequest();
         SetupEmailAlreadyRegistered(request.Email);
 
-        var act = async () => await _userService.AddAsync(request);
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        await _userService.AddAsync(request);
 
         _userRepositoryMock.Verify(r => r.AddAsync(
             It.IsAny<Domain.Entities.User>(),
