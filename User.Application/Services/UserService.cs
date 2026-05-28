@@ -1,6 +1,7 @@
 using FluentResults;
 using Mapster;
 using User.Application.DTOs.Request;
+using User.Application.DTOs.Response;
 using User.Application.Interfaces.Repositories;
 using User.Application.Interfaces.Services;
 
@@ -27,5 +28,19 @@ public sealed class UserService : IUserService
         await _userRepository.AddAsync(user, cancellationToken);
 
         return Result.Ok();
+    }
+
+    public async Task<PageDTO<UserResponseDTO>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        int totalRecords = await _userRepository.CountAsync(cancellationToken);
+        IEnumerable<Domain.Entities.User> users = await _userRepository.GetAllAsync(page, pageSize, cancellationToken);
+
+        return new PageDTO<UserResponseDTO>(
+            PageNumber: page,
+            PageSize: pageSize,
+            TotalPages: (int)Math.Ceiling((double)totalRecords / pageSize),
+            TotalRecords: totalRecords,
+            Data: users.Adapt<List<UserResponseDTO>>()
+        );
     }
 }

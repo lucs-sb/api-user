@@ -25,6 +25,9 @@ public sealed class UserRepository : IUserRepository
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+        => await _context.Users.CountAsync(cancellationToken);
+
     public async Task AddAsync(Domain.Entities.User user, CancellationToken cancellationToken = default)
     {
         await _context.Users.AddAsync(user, cancellationToken);

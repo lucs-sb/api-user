@@ -60,4 +60,11 @@ app.MapPost("/users", async (CreateUserModel model, IValidator<CreateUserModel> 
 })
 .WithName("CriarUsuario");
 
+app.MapGet("/users", async (IUserService userService, CancellationToken cancellationToken, int page = 1, int pageSize = 10) =>
+{
+    var users = await userService.GetAllAsync(page, pageSize, cancellationToken);
+    return Results.Ok(users);
+})
+.WithName("BuscarUsuarios");
+
 app.Run();
