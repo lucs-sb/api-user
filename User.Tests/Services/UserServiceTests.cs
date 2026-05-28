@@ -176,4 +176,34 @@ public sealed class UserServiceTests
         dto.Email.Should().Be(user.Email);
         dto.BirthDate.Should().Be(user.BirthDate);
     }
+
+    [Test]
+    public async Task Should_return_null_when_user_is_not_found()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Domain.Entities.User?)null);
+
+        var result = await _userService.GetByIdAsync(1);
+
+        result.Should().BeNull();
+    }
+
+    [Test]
+    public async Task Should_return_user_when_found_by_id()
+    {
+        var user = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var result = await _userService.GetByIdAsync(1);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(user.Id);
+        result.Name.Should().Be(user.Name);
+        result.Email.Should().Be(user.Email);
+        result.BirthDate.Should().Be(user.BirthDate);
+    }
 }
