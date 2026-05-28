@@ -9,4 +9,5 @@ public interface IUserService
     Task<Result> AddAsync(CreateUserRequestDTO request, CancellationToken cancellationToken = default);
     Task<PageDTO<UserResponseDTO>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken = default);
     Task<UserResponseDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default);
 }

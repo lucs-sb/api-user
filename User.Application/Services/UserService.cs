@@ -30,9 +30,21 @@ public sealed class UserService : IUserService
         return Result.Ok();
     }
 
+    public async Task<Result> DeleteAsync(int id, CancellationToken cancellationToken = default)
+    {
+        Domain.Entities.User? user = await _userRepository.GetByIdAsync(id, cancellationToken);
+
+        if (user is null)
+            return Result.Fail("Usuário não encontrado.");
+
+        await _userRepository.DeleteAsync(user, cancellationToken);
+
+        return Result.Ok();
+    }
+
     public async Task<UserResponseDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var user = await _userRepository.GetByIdAsync(id, cancellationToken);
+        Domain.Entities.User? user = await _userRepository.GetByIdAsync(id, cancellationToken);
         return user?.Adapt<UserResponseDTO>();
     }
 

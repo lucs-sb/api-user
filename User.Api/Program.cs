@@ -74,4 +74,17 @@ app.MapGet("/users/{id:int}", async (int id, IUserService userService, Cancellat
 })
 .WithName("BuscarUsuarioPorId");
 
+app.MapDelete("/users/{id:int}", async (int id, IUserService userService, CancellationToken cancellationToken) =>
+{
+    var result = await userService.DeleteAsync(id, cancellationToken);
+
+    if (result.IsFailed)
+        return Results.Problem(
+            detail: result.Errors.First().Message,
+            statusCode: StatusCodes.Status404NotFound);
+
+    return Results.NoContent();
+})
+.WithName("DeletarUsuario");
+
 app.Run();
