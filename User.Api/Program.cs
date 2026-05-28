@@ -67,4 +67,11 @@ app.MapGet("/users", async (IUserService userService, CancellationToken cancella
 })
 .WithName("BuscarUsuarios");
 
+app.MapGet("/users/{id:int}", async (int id, IUserService userService, CancellationToken cancellationToken) =>
+{
+    var user = await userService.GetByIdAsync(id, cancellationToken);
+    return user is null ? Results.NotFound() : Results.Ok(user);
+})
+.WithName("BuscarUsuarioPorId");
+
 app.Run();

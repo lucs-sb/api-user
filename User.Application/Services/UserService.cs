@@ -30,6 +30,12 @@ public sealed class UserService : IUserService
         return Result.Ok();
     }
 
+    public async Task<UserResponseDTO?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var user = await _userRepository.GetByIdAsync(id, cancellationToken);
+        return user?.Adapt<UserResponseDTO>();
+    }
+
     public async Task<PageDTO<UserResponseDTO>> GetAllAsync(int page, int pageSize, CancellationToken cancellationToken = default)
     {
         int totalRecords = await _userRepository.CountAsync(cancellationToken);
