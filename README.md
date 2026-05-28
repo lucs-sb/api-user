@@ -94,4 +94,34 @@ A solução foi organizada em camadas, separando responsabilidades entre
 
 <img width="1040" height="680" alt="Diagrama em branco" src="https://github.com/user-attachments/assets/3ef495f2-6d90-48a8-94ad-ac6d96d0890f" />
 
+## Como executar o projeto
 
+Esta aplicação pode ser executada localmente utilizando Docker, subindo a API e o banco de dados PostgreSQL em containers.
+
+### Pré-requisitos
+
+Antes de executar o projeto, certifique-se de ter instalado:
+
+- Docker
+
+### Executando a aplicação
+
+Na raiz do projeto, execute o comando:
+
+```bash
+docker compose up -d
+```
+
+### Acessando a API
+
+Após a inicialização dos containers, a API estará disponível em:
+
+```bash
+http://localhost:8080
+```
+
+A documentação Swagger poderá ser acessada em:
+
+```bash
+http://localhost:8080/swagger
+```
