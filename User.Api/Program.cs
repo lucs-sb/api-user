@@ -1,5 +1,7 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using User.Api.Model;
+using User.Api.Validators;
 using User.Application.DTOs.Request;
 using User.Application.Interfaces.Repositories;
 using User.Application.Interfaces.Services;
@@ -19,6 +21,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 
+builder.Services.AddScoped<IValidator<CreateUserModel>, CreateUserModelValidator>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -34,9 +38,14 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.MapPost("/users", async (CreateUserModel model, IUserService userService, CancellationToken cancellationToken) =>
+app.MapPost("/users", async (CreateUserModel model, IValidator<CreateUserModel> validator, IUserService userService, CancellationToken cancellationToken) =>
 {
-    CreateUserRequestDTO request = new(model.Name, model.Email, model.BirthDate);
+    var validation = await validator.ValidateAsync(model, cancellationToken);
+
+    if (!validation.IsValid)
+        return Results.ValidationProblem(validation.ToDictionary());
+
+    CreateUserRequestDTO request = new(model.Name!, model.Email!, model.BirthDate!.Value);
 
     await userService.AddAsync(request, cancellationToken);
 
