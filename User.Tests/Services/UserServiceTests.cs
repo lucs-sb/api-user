@@ -178,6 +178,34 @@ public sealed class UserServiceTests
     }
 
     [Test]
+    public async Task Should_return_failure_when_deleting_nonexistent_user()
+    {
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Domain.Entities.User?)null);
+
+        var result = await _userService.DeleteAsync(1);
+
+        result.IsFailed.Should().BeTrue();
+        result.Errors.First().Message.Should().Be("Usuário não encontrado.");
+    }
+
+    [Test]
+    public async Task Should_delete_user_when_found()
+    {
+        var user = new Domain.Entities.User { Id = 1, Name = "Teste", Email = "teste@email.com", BirthDate = new DateOnly(1995, 1, 1) };
+
+        _userRepositoryMock
+            .Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+
+        var result = await _userService.DeleteAsync(1);
+
+        result.IsSuccess.Should().BeTrue();
+        _userRepositoryMock.Verify(r => r.DeleteAsync(user, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Test]
     public async Task Should_return_null_when_user_is_not_found()
     {
         _userRepositoryMock
